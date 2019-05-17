@@ -18,6 +18,9 @@ abstract public class AbstractScenario {
     Long workflowId;
     QueryGateway queryGateway;
 
+    protected AbstractScenario() {
+    }
+
     protected AbstractScenario(StartScenarioCommand startCommand, QueryGateway queryGateway) {
         this.queryGateway = queryGateway;
 
@@ -34,6 +37,7 @@ abstract public class AbstractScenario {
     @EventSourcingHandler
     public void initWorkflow(StartScenarioEvent startingEvent) {
         workflowId = startingEvent.getWorkflowId();
+        log.info("Init workflow: {} for scenario: {}", workflowId, getClass().getSimpleName());
     }
 
     private Long startWorkflow() {

@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.scenario.model.CallbackCommand;
 import com.example.demo.scenario.model.StartScenarioCommand;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +37,12 @@ public class MainContoller {
     @GetMapping("/scenarios/callback/{workflowId}")
     public void scenarioCallback(@PathVariable("workflowId") Long workflowId, @RequestParam("action") String action) {
         log.info("Received callback for workflowId: {}, action: {}", workflowId, action);
+
+        CallbackCommand callbackCommand = new CallbackCommand()
+                .setWorkflowId(workflowId);
+        GenericMessage<CallbackCommand> genericMessage = new GenericMessage<>(callbackCommand);
+        GenericCommandMessage<CallbackCommand> commandMessage = new GenericCommandMessage<>(genericMessage, action);
+
+        commandGateway.send(commandMessage);
     }
 }

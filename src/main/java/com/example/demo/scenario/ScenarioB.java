@@ -1,6 +1,7 @@
 package com.example.demo.scenario;
 
 import com.example.demo.handler.model.HandlerAEvent;
+import com.example.demo.scenario.model.CallbackCommand;
 import com.example.demo.scenario.model.StartScenarioCommand;
 import com.example.demo.scenario.model.StartScenarioEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -12,9 +13,17 @@ import org.axonframework.spring.stereotype.Aggregate;
 @Aggregate
 public class ScenarioB extends AbstractScenario {
 
+    public ScenarioB() {
+    }
+
     @CommandHandler(commandName = "scenario-b")
     public ScenarioB(StartScenarioCommand startCommand, QueryGateway queryGateway) {
         super(startCommand, queryGateway);
+    }
+
+    @CommandHandler(commandName = "handler-a")
+    public void handleACallback(CallbackCommand callbackCommand, QueryGateway queryGateway) {
+        log.info("callback for workflow: {}", callbackCommand.getWorkflowId());
     }
 
     @Override
@@ -24,10 +33,7 @@ public class ScenarioB extends AbstractScenario {
                     .setWorkflowId(startingEvent.getWorkflowId())
                     .setMessage(startingEvent.getMessage());
 
-            queryGateway.query(handlerAEvent, Object.class)
-                    .whenComplete((result, exception) -> {
-                        log.info("Query completed, result: {}, exception: {}", result, exception);
-                    });
+            queryGateway.query(handlerAEvent, Object.class);
         };
     }
 }
