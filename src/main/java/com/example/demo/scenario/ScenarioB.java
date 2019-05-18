@@ -1,6 +1,7 @@
 package com.example.demo.scenario;
 
 import com.example.demo.handler.model.HandlerAEvent;
+import com.example.demo.handler.model.HandlerDEvent;
 import com.example.demo.scenario.model.CallbackCommand;
 import com.example.demo.scenario.model.StartScenarioCommand;
 import com.example.demo.scenario.model.StartScenarioEvent;
@@ -21,9 +22,16 @@ public class ScenarioB extends AbstractScenario {
         super(startCommand, queryGateway);
     }
 
-    @CommandHandler(commandName = "handler-a")
+    @CommandHandler(commandName = "ScenarioB-handler-a-action")
     public void handleACallback(CallbackCommand callbackCommand, QueryGateway queryGateway) {
-        log.info("callback for workflow: {}", callbackCommand.getWorkflowId());
+		HandlerDEvent handlerDEvent = new HandlerDEvent()
+				.setWorkflowId(workflowId)
+				.setMessage(callbackCommand.getMessage());
+
+		queryGateway.query(handlerDEvent, String.class)
+				.whenComplete((result, ex) -> {
+					log.info("SCENARIO FINISHED (workflow id: {}). Final result is: {}", workflowId, result);
+				});
     }
 
     @Override

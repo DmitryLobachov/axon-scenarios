@@ -1,6 +1,7 @@
 package com.example.demo.scenario;
 
-import com.example.demo.handler.model.HandlerAEvent;
+import java.util.concurrent.CompletableFuture;
+import com.example.demo.handler.model.*;
 import com.example.demo.scenario.model.CallbackCommand;
 import com.example.demo.scenario.model.StartScenarioCommand;
 import com.example.demo.scenario.model.StartScenarioEvent;
@@ -21,10 +22,40 @@ public class ScenarioA extends AbstractScenario {
         super(startCommand, queryGateway);
     }
 
-    @CommandHandler(commandName = "handler-a")
+    @CommandHandler(commandName = "ScenarioA-handler-a-action")
     public void handleACallback(CallbackCommand callbackCommand, QueryGateway queryGateway) {
-        log.info("callback for workflow: {}", callbackCommand.getWorkflowId());
-    }
+		Long workflowId = callbackCommand.getWorkflowId();
+
+		HandlerBEvent handlerBEvent = new HandlerBEvent()
+				.setWorkflowId(workflowId)
+				.setMessage(callbackCommand.getMessage());
+		CompletableFuture<String> handlerBFuture = queryGateway.query(handlerBEvent, String.class);
+
+		HandlerCEvent handlerCEvent = new HandlerCEvent()
+				.setWorkflowId(workflowId)
+				.setMessage(callbackCommand.getMessage());
+		CompletableFuture<String> handlerCFuture = queryGateway.query(handlerCEvent, String.class);
+
+		CompletableFuture.allOf(handlerBFuture, handlerCFuture)
+				.whenComplete((voidResult, throwable) -> {
+					try {
+						String handlerBResult = handlerBFuture.get();
+						String handlerCResult = handlerCFuture.get();
+
+						HandlerDEvent handlerDEvent = new HandlerDEvent()
+								.setWorkflowId(workflowId)
+								.setMessage(handlerBResult + "_____" + handlerCResult);
+
+						queryGateway.query(handlerDEvent, String.class)
+								.whenComplete((result, ex) -> {
+									log.info("SCENARIO FINISHED (workflow id: {}). Final result is: {}", workflowId, result);
+								});
+					} catch (Exception e) {
+						log.info("Failed to get result", e);
+						throw new RuntimeException(e);
+					}
+				});
+	}
 
     @Override
     protected Runnable startScenario(StartScenarioEvent startingEvent) {

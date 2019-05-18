@@ -1,19 +1,14 @@
-package com.example.demo.scenario.model;
+package com.example.demo.handler.model;
 
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
-import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
 
 @Data
 @Accessors(chain = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CallbackCommand {
-
-    @TargetAggregateIdentifier
-    Long workflowId;
-
+public class HandlerBEvent extends AbstractEvent<HandlerBEvent> {
     String message;
 }

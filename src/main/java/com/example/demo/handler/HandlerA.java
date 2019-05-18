@@ -23,6 +23,8 @@ public class HandlerA {
 
     @QueryHandler
     public Object handle(HandlerAEvent event) {
+    	log.info("Workflow: {}, message: {}", event.getWorkflowId(), event.getMessage());
+
         new Thread(() -> {
             log.info("Started async operation A");
 
@@ -35,7 +37,10 @@ public class HandlerA {
                 log.info("Going to do callback");
 
                 try {
-                    String url = String.format("http://localhost:8080/scenarios/callback/%d?action=handler-a", event.getWorkflowId());
+					String extendedMessage = event.getMessage() + '_' + getClass().getSimpleName();
+					String url = String.format("http://localhost:8080/scenarios/callback/%d?action=handler-a-action&message=%s",
+							event.getWorkflowId(),
+							extendedMessage);
                     restTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<Void>() {});
 
                     log.info("Callback successfuly sent");
